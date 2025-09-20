@@ -53,16 +53,11 @@ public class ChatService {
 
         String filter = String.format("userId == %d && dbId IN %s", userId, documentIDs.toString());
 
+        ChatMemory chatMemory = chatMemories.computeIfAbsent(request.getConversationId(), key -> MessageWindowChatMemory.builder()
+//                    TODO: make this JDBC memory repository instead of in-memory.
+                .chatMemoryRepository(new InMemoryChatMemoryRepository())
+                .maxMessages(MAX_MESSAGES_IN_MEMORY).build());
 
-        ChatMemory chatMemory = chatMemories.get(request.getConversationId());
-        if(chatMemory == null){
-            chatMemory = MessageWindowChatMemory.builder()
-                    .maxMessages(MAX_MESSAGES_IN_MEMORY)
-//                    TODO: make this JDBC memory repository instead of in memory.
-                    .chatMemoryRepository(new InMemoryChatMemoryRepository())
-                    .build();
-            chatMemories.put(request.getConversationId(), chatMemory);
-        }
 
         MessageChatMemoryAdvisor messageChatMemoryAdvisor = MessageChatMemoryAdvisor.builder(chatMemory).build();
 
