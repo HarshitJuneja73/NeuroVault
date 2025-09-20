@@ -58,6 +58,7 @@ public class ChatService {
         if(chatMemory == null){
             chatMemory = MessageWindowChatMemory.builder()
                     .maxMessages(MAX_MESSAGES_IN_MEMORY)
+//                    TODO: make this JDBC memory repository instead of in memory.
                     .chatMemoryRepository(new InMemoryChatMemoryRepository())
                     .build();
             chatMemories.put(request.getConversationId(), chatMemory);
