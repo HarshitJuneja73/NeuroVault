@@ -35,3 +35,8 @@ build/
 
 *.properties
 *.yml
+
+.DS_Store
+.gitattributes
+mvnw
+mvnw.cmd
