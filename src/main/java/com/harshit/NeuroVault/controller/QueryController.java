@@ -51,7 +51,7 @@ public class QueryController {
 //    user gives question and document ID(s). Gets a string in response
 
     @PostMapping("chat")
-    public ResponseEntity<String> chatWithDocs(@RequestBody ChatRequest request, @AuthenticationPrincipal UserDetails userDetails){
+    public ResponseEntity<String> chatWithDocs(@RequestBody ChatRequest request, @AuthenticationPrincipal UserDetails userDetails) {
         String result = chatService.chatWithDocs(request, userDetails.getUsername());
         if (result == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No documents found for user.");
