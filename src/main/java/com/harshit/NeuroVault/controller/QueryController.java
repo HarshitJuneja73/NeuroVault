@@ -22,12 +22,13 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Slf4j
-@Controller
+@RestController
 @RequestMapping("api/query")
 public class QueryController {
     private ChatClient chatClient;
@@ -50,7 +51,7 @@ public class QueryController {
 //    user gives question and document ID(s). Gets a string in response
 
     @PostMapping("chat")
-    public ResponseEntity<String> chatWithDocs(@RequestBody ChatRequest request, @AuthenticationPrincipal UserDetails userDetails){
+    public ResponseEntity<String> chatWithDocs(@RequestBody ChatRequest request, @AuthenticationPrincipal UserDetails userDetails) {
         String result = chatService.chatWithDocs(request, userDetails.getUsername());
         if (result == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No documents found for user.");
