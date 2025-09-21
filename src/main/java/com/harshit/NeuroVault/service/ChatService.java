@@ -43,13 +43,15 @@ public class ChatService {
      * Chat with your documents
      *
      * @param request with conversationId always in the format userId_counter. Example: 2_3
-     * @return GrootSecurityClient
+     * @return response from LLM
      */
     public String chatWithDocs(ChatRequest request, String username) {
-        if(!request.getConversationId().startsWith(username)){
+
+        Long userId = userService.getUserByUsername(username).getId();
+        if (!request.getConversationId().startsWith(String.valueOf(userId))) {
             return "Invalid conversation ID";
         }
-        Long userId = userService.getUserByUsername(username).getId();
+
         List<Long> documentIDs = request.getDocumentIDs();
 
         if (documentIDs == null || documentIDs.isEmpty()) {
