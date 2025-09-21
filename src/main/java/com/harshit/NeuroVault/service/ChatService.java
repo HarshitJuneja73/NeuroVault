@@ -39,7 +39,16 @@ public class ChatService {
         this.chatMemories = new ConcurrentHashMap<>();
     }
 
+    /**
+     * Chat with your documents
+     *
+     * @param request with conversationId always in the format userId_counter. Example: 2_3
+     * @return GrootSecurityClient
+     */
     public String chatWithDocs(ChatRequest request, String username) {
+        if(!request.getConversationId().startsWith(username)){
+            return "Invalid conversation ID";
+        }
         Long userId = userService.getUserByUsername(username).getId();
         List<Long> documentIDs = request.getDocumentIDs();
 
