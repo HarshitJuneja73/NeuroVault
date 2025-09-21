@@ -42,14 +42,30 @@ public class DocumentController {
         }
         String username = userDetails.getUsername();
         User user = userService.getUserByUsername(username);
+        int successCount = 0;
         for (MultipartFile file : files) {
             if (file.isEmpty()) {
                 results.add("File is empty");
             } else {
-                results.add(storageService.saveFileAndStoreText(file, user).getBody());
+                ResponseEntity<String> response = storageService.saveFileAndStoreText(file, user);
+                if (response.hasBody()) {
+                    successCount++;
+                    results.add(response.getBody());
+                } else {
+                    results.add("Failed to upload file: " + (file.getOriginalFilename() != null ?
+                            file.getOriginalFilename() : "unknown"));
+                }
             }
         }
-        return new ResponseEntity<>(results, HttpStatus.OK);
+        HttpStatus status;
+        if (successCount == files.size()) {
+            status = HttpStatus.OK;
+        } else if (successCount > 0) {
+            status = HttpStatus.MULTI_STATUS;
+        } else {
+            status = HttpStatus.BAD_REQUEST;
+        }
+        return new ResponseEntity<>(results, status);
     }
 
 

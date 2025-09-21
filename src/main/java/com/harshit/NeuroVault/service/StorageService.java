@@ -76,7 +76,7 @@ public class StorageService {
         List<Document> userDocuments = documentRepository.findByUser_Username(username);
         return new ResponseEntity<>(userDocuments, HttpStatus.OK);
     }
-
+//    This function will always return a Response entity without body if it fails at any step
     public ResponseEntity<String> saveFileAndStoreText(MultipartFile file, User user) throws IOException {
         String extractedText = textExtractionService.extractText(file);
         String cleanText = extractedText
@@ -102,7 +102,9 @@ public class StorageService {
         try {
             vectorStore.add(chunks);
         } catch (Exception e) {
-            deleteFile(saveOutput.getBody().getId(), user);
+            if(saveOutput.getBody()!=null){
+                deleteFile(saveOutput.getBody().getId(), user);
+            }
             log.error(e.getMessage());
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
