@@ -58,7 +58,7 @@ public class DocumentController {
 
         for (MultipartFile file : files) {
             if (file.isEmpty()) {
-                results.add("File is empty");
+                results.add("File is empty: " + (file.getOriginalFilename() != null ? file.getOriginalFilename() : "unknown"));
             } else {
                 ResponseEntity<String> response = storageService.saveFileAndStoreText(file, user);
                 if (response.hasBody()) {
