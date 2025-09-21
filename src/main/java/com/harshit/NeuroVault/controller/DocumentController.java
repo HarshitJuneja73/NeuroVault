@@ -4,13 +4,13 @@ import com.harshit.NeuroVault.model.Document;
 import com.harshit.NeuroVault.model.User;
 import com.harshit.NeuroVault.service.StorageService;
 import com.harshit.NeuroVault.service.UserService;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -35,6 +35,10 @@ public class DocumentController {
     private UserService userService;
 
     @PostMapping("/")
+    @Operation(
+            summary = "Upload documents",
+            description = "Uploads one or more files for the authenticated user. Returns status and messages for each file."
+    )
     public ResponseEntity<List<String>> upload(@RequestParam("file") List<MultipartFile> files,
                                                @AuthenticationPrincipal UserDetails userDetails) throws IOException {
         List<String> results = new ArrayList<>();
@@ -71,6 +75,10 @@ public class DocumentController {
 
 
     @GetMapping("/")
+    @Operation(
+            summary = "View all documents",
+            description = "Retrieves all documents uploaded by the authenticated user."
+    )
     public ResponseEntity<List<Document>> viewAllDocuments(@AuthenticationPrincipal UserDetails userDetails) {
         String username = userDetails.getUsername();
         return storageService.viewAllDocuments(username);
@@ -78,6 +86,10 @@ public class DocumentController {
     }
 
     @DeleteMapping("/")
+    @Operation(
+            summary = "Delete documents",
+            description = "Deletes documents by IDs for the authenticated user from storage, database, and vector store."
+    )
     public ResponseEntity<List<String>> delete(@RequestBody List<Long> IdsToDelete, @AuthenticationPrincipal UserDetails userDetails) {
 //        we have to delete from S3, DB and vector_store
         List<String> result = new ArrayList<>(IdsToDelete.size());
@@ -91,6 +103,10 @@ public class DocumentController {
     }
 
     @PostMapping("getByID")
+    @Operation(
+            summary = "Get documents by IDs",
+            description = "Fetches documents by their IDs for the authenticated user."
+    )
     public ResponseEntity<List<Document>> getDocumentById(@RequestBody List<Long> documentIDs, @AuthenticationPrincipal UserDetails userDetails) {
         List<Document> result = new ArrayList<>(documentIDs.size());
         String userName = userDetails.getUsername();
