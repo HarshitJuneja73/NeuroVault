@@ -36,8 +36,6 @@ public class StorageService {
     private EmbeddingModel embeddingModel;
 
 
-
-
     public ResponseEntity<Document> saveFileToDBandS3(MultipartFile file, User user) throws IOException {
         Document document = new Document();
         document.setFileName(file.getOriginalFilename());
@@ -77,6 +75,10 @@ public class StorageService {
         return new ResponseEntity<>(userDocuments, HttpStatus.OK);
     }
 
+    /**
+     * Returns a ResponseEntity with a body on success; failures return a ResponseEntity
+     * with no body and an appropriate error status.
+     */
     public ResponseEntity<String> saveFileAndStoreText(MultipartFile file, User user) throws IOException {
         String extractedText = textExtractionService.extractText(file);
         String cleanText = extractedText
@@ -89,7 +91,7 @@ public class StorageService {
 
         ResponseEntity<Document> saveOutput = saveFileToDBandS3(file, user);
 
-        if(!saveOutput.hasBody()){
+        if (!saveOutput.hasBody()) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
         org.springframework.ai.document.Document ragDoc = getRagDocument(saveOutput, cleanText);
@@ -102,7 +104,9 @@ public class StorageService {
         try {
             vectorStore.add(chunks);
         } catch (Exception e) {
-            deleteFile(saveOutput.getBody().getId(), user);
+            if (saveOutput.getBody() != null) {
+                deleteFile(saveOutput.getBody().getId(), user);
+            }
             log.error(e.getMessage());
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -129,7 +133,7 @@ public class StorageService {
 
     public String deleteFile(Long id, User user) {
         Optional<Document> docToDelete = findDocById(id, user);
-        if(docToDelete.isEmpty()) return "File not found";
+        if (docToDelete.isEmpty()) return "File not found";
         Document document = docToDelete.get();
         String s3Url = document.getS3Url();
         if (!document.getUser().getId().equals(user.getId())) {
@@ -142,14 +146,14 @@ public class StorageService {
         vectorStore.delete(filterForDeletion);
         // deleting from DB
         documentRepository.deleteById(id);
-        return String.format("Deletion Successful for id %d",id);
+        return String.format("Deletion Successful for id %d", id);
     }
 
 
     public Optional<Document> findDocById(Long id, User user) {
 
         Optional<Document> doc = documentRepository.findById(id);
-        if(doc.isPresent()){
+        if (doc.isPresent()) {
             if (!doc.get().getUser().getId().equals(user.getId())) {
                 return Optional.empty();
             }

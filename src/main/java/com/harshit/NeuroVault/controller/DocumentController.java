@@ -34,43 +34,68 @@ public class DocumentController {
     private UserService userService;
 
     @PostMapping("/")
-    public ResponseEntity<String> upload(@RequestParam("file") MultipartFile file,
-                                         @AuthenticationPrincipal UserDetails userDetails) throws IOException {
-        if(file.isEmpty()){
-            return new ResponseEntity<>("File is empty", HttpStatus.BAD_REQUEST);
+    public ResponseEntity<List<String>> upload(@RequestParam("file") List<MultipartFile> files,
+                                               @AuthenticationPrincipal UserDetails userDetails) throws IOException {
+        List<String> results = new ArrayList<>();
+        if (files == null || files.isEmpty()) {
+            return new ResponseEntity<>(List.of("No files provided"), HttpStatus.BAD_REQUEST);
         }
         String username = userDetails.getUsername();
         User user = userService.getUserByUsername(username);
-        return storageService.saveFileAndStoreText(file, user);
+        int successCount = 0;
+        for (MultipartFile file : files) {
+            if (file.isEmpty()) {
+                results.add("File is empty");
+            } else {
+                ResponseEntity<String> response = storageService.saveFileAndStoreText(file, user);
+                if (response.hasBody()) {
+                    successCount++;
+                    results.add(response.getBody());
+                } else {
+                    results.add("Failed to upload file: " + (file.getOriginalFilename() != null ?
+                            file.getOriginalFilename() : "unknown"));
+                }
+            }
+        }
+        HttpStatus status;
+        if (successCount == files.size()) {
+            status = HttpStatus.OK;
+        } else if (successCount > 0) {
+            status = HttpStatus.MULTI_STATUS;
+        } else {
+            status = HttpStatus.BAD_REQUEST;
+        }
+        return new ResponseEntity<>(results, status);
     }
 
+
     @GetMapping("/")
-    public ResponseEntity<List<Document>> viewAllDocuments(@AuthenticationPrincipal UserDetails userDetails){
+    public ResponseEntity<List<Document>> viewAllDocuments(@AuthenticationPrincipal UserDetails userDetails) {
         String username = userDetails.getUsername();
         return storageService.viewAllDocuments(username);
 
     }
 
     @DeleteMapping("/")
-    public ResponseEntity<List<String>> delete(@RequestBody List<Long> IdsToDelete, @AuthenticationPrincipal UserDetails userDetails){
+    public ResponseEntity<List<String>> delete(@RequestBody List<Long> IdsToDelete, @AuthenticationPrincipal UserDetails userDetails) {
 //        we have to delete from S3, DB and vector_store
         List<String> result = new ArrayList<>(IdsToDelete.size());
         String userName = userDetails.getUsername();
         User user = userService.getUserByUsername(userName);
-        for(Long id : IdsToDelete){
-            result.add(storageService.deleteFile(id,user));
+        for (Long id : IdsToDelete) {
+            result.add(storageService.deleteFile(id, user));
         }
 
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
     @PostMapping("getByID")
-    public ResponseEntity<List<Document>> getDocumentById(@RequestBody List<Long> documentIDs, @AuthenticationPrincipal UserDetails userDetails){
+    public ResponseEntity<List<Document>> getDocumentById(@RequestBody List<Long> documentIDs, @AuthenticationPrincipal UserDetails userDetails) {
         List<Document> result = new ArrayList<>(documentIDs.size());
         String userName = userDetails.getUsername();
         User user = userService.getUserByUsername(userName);
-        for(Long id : documentIDs){
-            result.add(storageService.findDocById(id,user).orElse(null));
+        for (Long id : documentIDs) {
+            result.add(storageService.findDocById(id, user).orElse(null));
         }
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
