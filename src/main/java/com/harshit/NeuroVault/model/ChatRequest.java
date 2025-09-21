@@ -23,8 +23,8 @@ public class ChatRequest {
     private List<Long> documentIDs;
     @NotNull(message = "Conversation ID cannot be null")
     @Pattern(
-            regexp = "^\\d+_.+$",
-            message = "Conversation ID must start with user id, followed by an underscore, and at least one character (e.g., 1_1)"
+            regexp = "^\\d+_[a-zA-Z0-9]+$",
+            message = "Conversation ID must start with user id, followed by an underscore, and at least one alphanumeric character (e.g., 1_1)"
     )
     @Schema(
             description = "Unique identifier for the conversation. Must start with user id, followed by an underscore, and at least one character.",
