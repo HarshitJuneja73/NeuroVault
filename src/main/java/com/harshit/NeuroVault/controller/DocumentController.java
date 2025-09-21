@@ -5,9 +5,11 @@ import com.harshit.NeuroVault.model.User;
 import com.harshit.NeuroVault.service.StorageService;
 import com.harshit.NeuroVault.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -17,6 +19,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -34,20 +37,25 @@ public class DocumentController {
     @Autowired
     private UserService userService;
 
-    @PostMapping("/")
+    @PostMapping(value = "/", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(
             summary = "Upload documents",
             description = "Uploads one or more files for the authenticated user. Returns status and messages for each file."
     )
-    public ResponseEntity<List<String>> upload(@RequestParam("file") List<MultipartFile> files,
-                                               @AuthenticationPrincipal UserDetails userDetails) throws IOException {
+    public ResponseEntity<List<String>> upload(
+            @Parameter(description = "Files to upload")
+            @RequestPart("file") List<MultipartFile> files,
+            @AuthenticationPrincipal UserDetails userDetails) throws IOException {
+
         List<String> results = new ArrayList<>();
         if (files == null || files.isEmpty()) {
             return new ResponseEntity<>(List.of("No files provided"), HttpStatus.BAD_REQUEST);
         }
+
         String username = userDetails.getUsername();
         User user = userService.getUserByUsername(username);
         int successCount = 0;
+
         for (MultipartFile file : files) {
             if (file.isEmpty()) {
                 results.add("File is empty");
@@ -57,8 +65,8 @@ public class DocumentController {
                     successCount++;
                     results.add(response.getBody());
                 } else {
-                    results.add("Failed to upload file: " + (file.getOriginalFilename() != null ?
-                            file.getOriginalFilename() : "unknown"));
+                    results.add("Failed to upload file: " +
+                            (file.getOriginalFilename() != null ? file.getOriginalFilename() : "unknown"));
                 }
             }
         }
