@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -32,10 +31,14 @@ import java.util.List;
 @RestController
 @RequestMapping("api/documents")
 public class DocumentController {
+    private final StorageService storageService;
+    private final UserService userService;
+
     @Autowired
-    private StorageService storageService;
-    @Autowired
-    private UserService userService;
+    public DocumentController(StorageService storageService, UserService userService){
+        this.storageService = storageService;
+        this.userService = userService;
+    }
 
     @PostMapping(value = "/", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(
@@ -98,12 +101,12 @@ public class DocumentController {
             summary = "Delete documents",
             description = "Deletes documents by IDs for the authenticated user from storage, database, and vector store."
     )
-    public ResponseEntity<List<String>> delete(@RequestBody List<Long> IdsToDelete, @AuthenticationPrincipal UserDetails userDetails) {
+    public ResponseEntity<List<String>> delete(@RequestBody List<Long> idsToDelete, @AuthenticationPrincipal UserDetails userDetails) {
 //        we have to delete from S3, DB and vector_store
-        List<String> result = new ArrayList<>(IdsToDelete.size());
+        List<String> result = new ArrayList<>(idsToDelete.size());
         String userName = userDetails.getUsername();
         User user = userService.getUserByUsername(userName);
-        for (Long id : IdsToDelete) {
+        for (Long id : idsToDelete) {
             result.add(storageService.deleteFile(id, user));
         }
 
